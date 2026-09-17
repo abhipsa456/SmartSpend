@@ -1,9 +1,11 @@
 import sqlite3
 import pandas as pd
-from database import DB_PATH
+from database import DB_PATH, create_database
 
 
 def load_expenses():
+
+    create_database()
 
     conn = sqlite3.connect(DB_PATH)
 
@@ -15,8 +17,6 @@ def load_expenses():
     conn.close()
 
     return df
-
-
 def monthly_spending():
 
     df = load_expenses()
