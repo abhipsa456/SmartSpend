@@ -1,9 +1,40 @@
 import sqlite3
 import os
+
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "expenses.db")
 
+
+def create_database():
+
+    conn = sqlite3.connect(DB_PATH)
+
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS expenses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            amount REAL NOT NULL,
+            category TEXT NOT NULL,
+            description TEXT,
+            date TEXT NOT NULL
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS budget (
+            id INTEGER PRIMARY KEY,
+            amount REAL NOT NULL
+        )
+    """)
+
+    conn.commit()
+    conn.close()
+
+
 def add_expense(amount, category, description, date):
+
     conn = sqlite3.connect(DB_PATH)
 
     cursor = conn.cursor()
@@ -19,6 +50,7 @@ def add_expense(amount, category, description, date):
 
 
 def get_expenses():
+
     conn = sqlite3.connect(DB_PATH)
 
     cursor = conn.cursor()
@@ -33,6 +65,8 @@ def get_expenses():
     conn.close()
 
     return expenses
+
+
 def set_budget(amount):
 
     conn = sqlite3.connect(DB_PATH)
@@ -70,6 +104,8 @@ def get_budget():
         return result[0]
 
     return None
+
+
 def delete_expense(expense_id):
 
     conn = sqlite3.connect(DB_PATH)
