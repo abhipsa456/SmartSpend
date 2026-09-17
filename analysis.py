@@ -1,10 +1,11 @@
 import sqlite3
 import pandas as pd
+from database import DB_PATH
 
 
 def load_expenses():
 
-    conn = sqlite3.connect("expenses.db")
+    conn = sqlite3.connect(DB_PATH)
 
     df = pd.read_sql_query(
         "SELECT * FROM expenses",
@@ -23,13 +24,10 @@ def monthly_spending():
     if df.empty:
         return None
 
-    # Convert date column to datetime
     df["date"] = pd.to_datetime(df["date"])
 
-    # Create month column
     df["month"] = df["date"].dt.to_period("M").astype(str)
 
-    # Calculate total spending per month
     monthly = (
         df.groupby("month")["amount"]
         .sum()
