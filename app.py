@@ -1,20 +1,16 @@
 import streamlit as st
 import pandas as pd
-from datetime import date
 
 from database import (
     create_database,
     add_expense,
     get_expenses,
-    delete_expense,
     set_budget,
-    get_budget
+    get_budget,
+    delete_expense
 )
 
-from analysis import (
-    load_expenses,
-    monthly_spending
-)
+from analysis import load_expenses, monthly_spending
 
 from prediction import (
     predict_category,
