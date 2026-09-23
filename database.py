@@ -29,9 +29,22 @@ def create_database():
         )
     """)
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS settings (
+            id INTEGER PRIMARY KEY,
+            monthly_salary REAL DEFAULT 0,
+            yearly_budget REAL DEFAULT 0
+        )
+    """)
+
+    cursor.execute("""
+        INSERT OR IGNORE INTO settings
+        (id, monthly_salary, yearly_budget)
+        VALUES (1, 0, 0)
+    """)
+
     conn.commit()
     conn.close()
-
 
 def add_expense(amount, category, description, date):
 
@@ -119,3 +132,40 @@ def delete_expense(expense_id):
 
     conn.commit()
     conn.close()
+def set_financial_settings(monthly_salary, yearly_budget):
+
+    conn = sqlite3.connect(DB_PATH)
+
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE settings
+        SET monthly_salary = ?,
+            yearly_budget = ?
+        WHERE id = 1
+    """, (monthly_salary, yearly_budget))
+
+    conn.commit()
+    conn.close()
+
+
+def get_financial_settings():
+
+    conn = sqlite3.connect(DB_PATH)
+
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT monthly_salary, yearly_budget
+        FROM settings
+        WHERE id = 1
+    """)
+
+    result = cursor.fetchone()
+
+    conn.close()
+
+    if result:
+        return result[0], result[1]
+
+    return 0, 0

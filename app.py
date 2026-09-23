@@ -7,7 +7,9 @@ from database import (
     get_expenses,
     set_budget,
     get_budget,
-    delete_expense
+    delete_expense,
+    set_financial_settings,
+    get_financial_settings
 )
 
 from analysis import load_expenses, monthly_spending
@@ -191,6 +193,55 @@ categories = [
     "Education",
     "Other"
 ]
+# ==============================
+# FINANCIAL OVERVIEW
+# ==============================
+
+st.markdown("## 💼 Financial Overview")
+
+monthly_salary, yearly_budget = get_financial_settings()
+
+with st.form("financial_settings_form"):
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        new_salary = st.number_input(
+            "💵 Monthly Salary",
+            min_value=0.0,
+            value=float(monthly_salary),
+            step=1000.0
+        )
+
+    with col2:
+        new_yearly_budget = st.number_input(
+            "📅 Yearly Budget",
+            min_value=0.0,
+            value=float(yearly_budget),
+            step=5000.0
+        )
+
+    save_financial = st.form_submit_button(
+        "💾 Save Financial Settings",
+        use_container_width=True
+    )
+
+    if save_financial:
+        set_financial_settings(
+            new_salary,
+            new_yearly_budget
+        )
+
+        st.session_state["financial_settings_saved"] = True
+        st.rerun()
+
+
+if st.session_state.get("financial_settings_saved", False):
+    st.success(
+        "Financial settings saved successfully! ✅"
+    )
+
+    st.session_state["financial_settings_saved"] = False
 # --------------------------------------------------
 # LOAD DATA
 # --------------------------------------------------
@@ -212,6 +263,29 @@ if not df.empty:
 
     df["date"] = pd.to_datetime(df["date"])
 
+        # ----------------------------------------------
+    # SAVINGS CALCULATION
+    # ----------------------------------------------
+
+    current_month = pd.Timestamp.today().to_period("M")
+
+    current_month_expenses = df[
+        df["date"].dt.to_period("M") == current_month
+    ]
+
+    current_month_spending = current_month_expenses["amount"].sum()
+
+    monthly_savings = monthly_salary - current_month_spending
+
+    if monthly_salary > 0:
+
+        savings_rate = (
+            monthly_savings / monthly_salary
+        ) * 100
+
+    else:
+
+        savings_rate = 0
 
     # ----------------------------------------------
     # SUMMARY METRICS
@@ -226,7 +300,7 @@ if not df.empty:
     highest_expense = df["amount"].max()
 
 
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
 
     with col1:
 
@@ -256,6 +330,114 @@ if not df.empty:
             f"₹{highest_expense:,.0f}"
         )
 
+    with col5:
+
+        st.metric(
+            "💰 Monthly Savings",
+            f"₹{monthly_savings:,.0f}"
+        )
+
+
+    if monthly_salary > 0:
+
+        if monthly_savings >= 0:
+
+            st.success(
+                f"💰 You are saving ₹{monthly_savings:,.2f} "
+                f"this month ({savings_rate:.1f}% of your salary)."
+            )
+
+        else:
+
+            st.warning(
+                f"⚠️ Your spending is ₹{abs(monthly_savings):,.2f} "
+                f"above your monthly salary."
+            )
+        # ----------------------------------------------
+    # YEARLY BUDGET STATUS
+    # ----------------------------------------------
+
+    st.subheader("📅 Yearly Budget Status")
+
+    current_year = pd.Timestamp.today().year
+
+    current_year_expenses = df[
+        df["date"].dt.year == current_year
+    ]
+
+    yearly_spending = current_year_expenses["amount"].sum()
+
+    remaining_yearly_budget = (
+        yearly_budget - yearly_spending
+    )
+
+    if yearly_budget > 0:
+
+        yearly_budget_percentage = (
+            yearly_spending / yearly_budget
+        ) * 100
+
+    else:
+
+        yearly_budget_percentage = 0
+
+
+    yearly_col1, yearly_col2, yearly_col3, yearly_col4 = st.columns(4)
+
+
+    with yearly_col1:
+
+        st.metric(
+            "📅 Yearly Budget",
+            f"₹{yearly_budget:,.0f}"
+        )
+
+
+    with yearly_col2:
+
+        st.metric(
+            "💸 Spent This Year",
+            f"₹{yearly_spending:,.0f}"
+        )
+
+
+    with yearly_col3:
+
+        st.metric(
+            "💰 Remaining",
+            f"₹{remaining_yearly_budget:,.0f}"
+        )
+
+
+    with yearly_col4:
+
+        st.metric(
+            "📊 Budget Used",
+            f"{yearly_budget_percentage:.1f}%"
+        )
+
+
+    if yearly_budget > 0:
+
+        if remaining_yearly_budget > 0:
+
+            st.success(
+                f"🟢 You have ₹{remaining_yearly_budget:,.0f} "
+                f"left in your yearly budget."
+            )
+
+        elif remaining_yearly_budget == 0:
+
+            st.info(
+                "⚠️ You have used your entire yearly budget."
+            )
+
+        else:
+
+            st.warning(
+                f"🔴 You are over your yearly budget by "
+                f"₹{abs(remaining_yearly_budget):,.0f}."
+            )
 
     # ----------------------------------------------
     # CATEGORY SPENDING
