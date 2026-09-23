@@ -46,6 +46,7 @@ def create_database():
     conn.commit()
     conn.close()
 
+
 def add_expense(amount, category, description, date):
 
     conn = sqlite3.connect(DB_PATH)
@@ -132,6 +133,8 @@ def delete_expense(expense_id):
 
     conn.commit()
     conn.close()
+
+
 def set_financial_settings(monthly_salary, yearly_budget):
 
     conn = sqlite3.connect(DB_PATH)
